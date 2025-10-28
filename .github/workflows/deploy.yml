@@ -1,35 +1,40 @@
-name: CI/CD to AWS
+name: Build and Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up AWS credentials
+      # 2. Set up AWS credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # 3. Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push Docker image to ECR
+      # 4. Build, tag, and push Docker image to ECR
+      - name: Build, tag, and push Docker image
         run: |
           IMAGE_TAG=${{ github.sha }}
           docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG .
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
 
-      # Optional: Deploy to EC2 via SSH
+      # 5. Optional: Deploy to EC2 via SSH
       - name: Deploy on EC2
         if: ${{ secrets.EC2_HOST != '' }}
         uses: appleboy/ssh-action@v1.0.0
@@ -42,4 +47,5 @@ jobs:
             docker stop flask-app || true
             docker rm flask-app || true
             docker run -d -p 80:5000 --name flask-app ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+
 
