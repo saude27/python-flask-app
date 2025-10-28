@@ -44,7 +44,7 @@ jobs:
 
       # 5. Deploy Docker image to EC2
       - name: Deploy on EC2
-        uses: appleboy/ssh-action@v1.6.0
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.EC2_USERNAME }}
