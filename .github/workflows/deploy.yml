@@ -46,7 +46,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.2
         with:
          host: ${{ secrets.EC2_HOST }}
-         username: ubuntu
+         username: ec2-user
          key: ${{ secrets.EC2_SSH_KEY }}
          envs: ECR_REGISTRY,ECR_REPOSITORY,GITHUB_SHA,AWS_REGION
          script: |
