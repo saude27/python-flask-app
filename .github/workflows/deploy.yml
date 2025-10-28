@@ -42,18 +42,24 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 5. Deploy Docker image to EC2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.2.2
         with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USERNAME }}
-          key: ${{ env.EC2_SSH_KEY }}
-          script: |
-            echo "Stopping old container (if exists)..."
-            docker stop flask-app || true
-            docker rm flask-app || true
-            echo "Pulling new image from ECR..."
-            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_SHA}
-            echo "Running new container..."
-            docker run -d -p 80:5000 --name flask-app $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_SHA}
+         host: ${{ secrets.EC2_HOST }}
+         username: ubuntu
+         key: ${{ secrets.EC2_SSH_KEY }}
+         envs: ECR_REGISTRY,ECR_REPOSITORY,GITHUB_SHA,AWS_REGION
+         script: |
+           echo "Logging into ECR..."
+           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+           echo "Stopping old container (if exists)..."
+           docker stop flask-app || true
+           docker rm flask-app || true
+
+           echo "Pulling new image from ECR..."
+           echo "Image: $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA"
+           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+
+           echo "Running new container..."
+           docker run -d -p 80:5000 --name flask-app $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
