@@ -31,7 +31,7 @@ jobs:
 
       # Optional: Deploy to EC2 via SSH
       - name: Deploy on EC2
-        if: secrets.EC2_HOST != ''
+        if: ${{ secrets.EC2_HOST != '' }}
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -42,3 +42,4 @@ jobs:
             docker stop flask-app || true
             docker rm flask-app || true
             docker run -d -p 80:5000 --name flask-app ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+
