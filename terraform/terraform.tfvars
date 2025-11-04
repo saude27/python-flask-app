@@ -1,0 +1,7 @@
+region = "eu-west-2"
+vpc_cidr = "10.0.0.0/16"
+public_subnet_cidr = "10.0.1.0/24"
+availability_zone = "eu-west-2a"
+ami_id = "ami-024294779773cf91a"
+instance_type = "t2.micro"
+key_name = "Ami"
