@@ -165,16 +165,17 @@ jobs:
 
             echo "🪣 Logging in to ECR..."
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-              docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+              sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+
 
             echo "🧹 Cleaning old containers..."
-            docker stop flask-app || true
-            docker rm flask-app || true
+            sudo docker stop flask-app || true
+            sudo docker rm flask-app || true
 
             echo "📦 Pulling new image..."
             MAX_RETRIES=3
             for i in $(seq 1 $MAX_RETRIES); do
-              if docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}:${{ github.sha }}; then
+              if sudo docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}:${{ github.sha }}; then
                 break
               else
                 echo "Retry $i/$MAX_RETRIES failed, retrying in 5s..."
@@ -183,7 +184,7 @@ jobs:
             done
 
             echo "🚀 Running new container..."
-            docker run -d -p 80:5000 --name flask-app ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}:${{ github.sha }}
+            sudo docker run -d -p 80:5000 --name flask-app ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}:${{ github.sha }}
 
             echo "✅ Deployment complete! App should now be live."
 
